@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://thymeleaf.org">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
+
+</head>
+<body>
+
+<nav class="navbar navbar-expand-md  bg-light text-dark navbar-light">
+    <div class="container-fluid" style="padding-left: 0">
+        <ul class="navbar-nav">
+            <li class="navbar-item">
+                <h1><span class="nav-text p-1" inline="text">Директории и файлы</span></h1></li>
+        </ul>
+    </div>
+</nav>
+
+
+<form th:method="POST" th:action="@{/dirs_and_files/add}"  id="myForm" class="form-inline bg-light">
+    <div class="form-group col-10">
+        <label for="inputDir" class="col-2">Новая директория</label>
+        <input name="path" type="text" class="form-control col-6" id="inputDir" placeholder="/opt/tomcat/temp">
+        <button type="submit" class="btn btn-primary" style="margin: 0 15px" id="btnAdd">Добавить в список</button>
+    </div>
+</form>
+
+<!--    таблица-->
+<div class="col-12 bg-light container-fluid" style="padding: .5rem 1rem">
+    <div>
+        <div class="pt-4" id="tab">
+            <caption><h3>Список директорий и файлов</h3></caption>
+            <table class="table table-striped">
+                <tr>
+                    <th>Дата</th>
+                    <th>Базовая директория</th>
+                    <th>Директорий</th>
+                    <th>Файлов</th>
+                    <th>Суммарный размер файлов</th>
+                    <th></th>
+                </tr>
+                <tr th:each="dir : ${table}">
+                    <td th:text=${dir.date}></td>
+                    <td th:text=${dir.path}></td>
+                    <td th:text=${dir.countDirs}></td>
+                    <td th:text=${dir.countFiles}></td>
+                    <td th:text=${dir.size}></td>
+                    <td id="files" class="edit">
+                        <button data-toggle="modal" data-target="#modalFiles" role="button" id="openFiles"
+                                class="btn btn-primary openFiles" th:title="${dir.id}">
+                            Файлы
+                        </button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalFiles" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <table class="table table-striped" id="subTable">
+                <tr>
+                    <th>Название</th>
+                    <th>Размер</th>
+                </tr>
+                <!--                <tr>-->
+                <!--                    <td></td>-->
+                <!--                    <td></td>-->
+                <!--                </tr>-->
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+<script th:inline="javascript">
+    const url = 'http://localhost:8080/dirs_and_files'
+
+    const subTable = document.getElementById("subTable");
+    // const btnFiles = document.getElementById("openFiles");
+    const btnsFiles = document.querySelectorAll('.openFiles')
+
+    for (let i = 0; i < btnsFiles.length; i++) {
+        btnsFiles[i].addEventListener('click', (event) => {
+            event.preventDefault();
+            subTable.innerHTML = '';
+            let trH = document.createElement('tr');
+            let th1 = document.createElement('th');
+            let th2 = document.createElement('th');
+
+            th1.textContent = 'Название';
+            th2.textContent = 'Размер'
+
+            trH.appendChild(th1);
+            trH.appendChild(th2);
+
+            subTable.appendChild(trH);
+            fetch(url + '/files/' + btnsFiles[i].getAttribute('title')).then(res => res.json()).then(data => {
+                for (let j = 0; j < data.length; j++) {
+                    let tr = document.createElement('tr');
+                    let td1 = document.createElement('td');
+                    let td2 = document.createElement('td');
+
+                    td1.innerText = data[j].name;
+                    td2.innerText = data[j].size;
+
+                    tr.appendChild(td1);
+                    tr.appendChild(td2);
+
+                    subTable.appendChild(tr);
+                }
+            })
+        })
+    }
+
+
+</script>
+</html>
